@@ -1,7 +1,17 @@
+#include <Arduino.h>
+#include <usb_serial.h>
 
+void setup();
+void loop();
+void sendLetter(byte bitField);
+void sendDit();
+void sendDah();
+void sendEndCh();
+void sendMark();
+void sendSpace();
 
-int PIN_DIT = 3;
-int PIN_DAH = 4;
+const int PIN_DIT = 3;
+const int PIN_DAH = 4;
 
 int ditLengthMillis = 200;
 int dahWeightTenths = 25;
