@@ -8,6 +8,8 @@
 #define DAH MorseDecode::onDah()
 #define REST MorseDecode::onCharacterGap()
 
+const unsigned short GAPS_FOR_SPACE=3;
+
 static unsigned short lastSymbol = 0xFF;
 static unsigned int called = 0;
 
@@ -86,15 +88,12 @@ void whenReceivingWordParis_givesCorrectCodes()
     TEST_ASSERT_EQUAL(5, called);
 }
 
-void whenLessThanFourSpacesReceivedDoesNotSendSpace()
+void whenLessThanWordSpaceReceivedDoesNotSendSpace()
 {
     beforeEach();
     DIT;
-    REST;
+    for(int i = 1; i < GAPS_FOR_SPACE; i++) REST;
     TEST_ASSERT_EQUAL(MORSE_E, lastSymbol);
-    REST;
-    TEST_ASSERT_EQUAL(1, called);
-    REST;
     TEST_ASSERT_EQUAL(1, called);
     DAH;
     REST;
@@ -102,15 +101,13 @@ void whenLessThanFourSpacesReceivedDoesNotSendSpace()
     TEST_ASSERT_EQUAL(2, called);
 }
 
-void whenFourSpacesReceivedSendsSpace()
+void whenWordSpaceSpacesReceivedSendsSpace()
 {
     beforeEach();
     DIT;
     REST;
     TEST_ASSERT_EQUAL(MORSE_E, lastSymbol);
-    REST;
-    REST;
-    REST;
+    for(int i = 1; i < GAPS_FOR_SPACE; i++) REST;
     TEST_ASSERT_EQUAL(MORSE_SPACE, lastSymbol);
     TEST_ASSERT_EQUAL(2, called);
     DAH;
@@ -199,8 +196,8 @@ void loop()
     RUN_TEST(whenReceivingLetterA_givesCorrectCode);
     RUN_TEST(whenReceivingLetterN_givesCorrectCode);
     RUN_TEST(whenReceivingWordParis_givesCorrectCodes);
-    RUN_TEST(whenLessThanFourSpacesReceivedDoesNotSendSpace);
-    RUN_TEST(whenFourSpacesReceivedSendsSpace);
+    RUN_TEST(whenLessThanWordSpaceReceivedDoesNotSendSpace);
+    RUN_TEST(whenWordSpaceSpacesReceivedSendsSpace);
     RUN_TEST(whenLeftIdleItOnlySendsSpaceOnce);
     RUN_TEST(whenReceivingEigthDitSendsBackspace);
     RUN_TEST(whenReceivingSixteenthDitSendsBackspaceAgain);

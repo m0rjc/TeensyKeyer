@@ -51,6 +51,10 @@
 #define MORSE_8 B11100111
 #define MORSE_9 B11101111
 
+#define MORSE_SLASH B11010010
+#define MORSE_QUESTION_MARK B11001100
+
+
 #define MORSE_SPECIAL 0x100
 
 // Backspace is all dits, normally an error.

@@ -1,7 +1,10 @@
 #include "MorseDecode.h"
 #include "MorseCharacters.h"
 
-const unsigned short GAPS_FOR_SPACE=4;
+// See https://www.eham.net/ehamforum/smf/index.php?topic=8534.0;wap2
+// But note that the keyer sees a character gap as 3 dits, so this gives
+// 3*3=9. A little more tolerant for me.
+const unsigned short GAPS_FOR_SPACE=3;
 
 namespace MorseDecode {
     static symbolCallback m_callback;
