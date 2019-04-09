@@ -1,6 +1,7 @@
 #ifndef __IAMBIC_KEYER_H__
 #define __IAMBIC_KEYER_H__
 
+#include <Arduino.h>
 #include "Common.h"
 #include "IambicKeyerStates.h"
 

@@ -1,5 +1,3 @@
-
-#include <Arduino.h>
 #include "IambicKeyer.h"
 #include "IambicKeyerStates.h"
 

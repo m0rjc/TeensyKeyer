@@ -1,6 +1,8 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
+#include <Arduino.h>
+
 namespace Common {
 
     enum KeyerMode {
@@ -14,8 +16,6 @@ namespace Common {
         public:
         virtual uint32_t getTimeMillis(void);
         virtual KeyInput readSwitches(void) = 0;
-//        virtual bool isSqueezeCaptured(void) = 0;
-//        virtual void clearSqueezeCapture(void) = 0; 
     };
 
     class IMorseDecoder {

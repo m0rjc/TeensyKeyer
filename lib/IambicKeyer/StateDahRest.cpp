@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "IambicKeyerStates.h"
 
 namespace IambicKeyer {
