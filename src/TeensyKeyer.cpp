@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <usb_serial.h>
 
+#include "IambicKeyer.h"
+#include "MorseDecode.h"
+
 void setup();
 void loop();
 void sendLetter(byte bitField);
