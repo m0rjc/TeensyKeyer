@@ -2,15 +2,15 @@
 #include "IambicKeyerStates.h"
 
 namespace IambicKeyer {
-    const void StateDitRest::onEnter(IStateContext *context) {
+    const void StateDahRest::onEnter(IStateContext *context) {
         context->setTimeout(TIME_GAP); // 1 dit for a rest
     }
 
-    const void StateDitRest::onTimeout(IStateContext *context) {
+    const void StateDahRest::onTimeout(IStateContext *context) {
         IState *nextState = STATE_IDLE;
 
         if(context->isSqueezeCaptured()) {
-            nextState = STATE_IAMBIC_DAH;
+            nextState = STATE_IAMBIC_DIT;
         } else {
             switch(context->readSwitches()) {
                 case Common::KeyInput::none :
@@ -23,15 +23,15 @@ namespace IambicKeyer {
                     nextState = STATE_DAH;
                     break;
                 case Common::KeyInput::squeeze :
-                    nextState = STATE_IAMBIC_DAH;
+                    nextState = STATE_IAMBIC_DIT;
                     break;    
             }
         }
         context->enterState(nextState);
     }
 
-    const void StateDitRest::onSwitchChange(IStateContext *context) {
+    const void StateDahRest::onSwitchChange(IStateContext *context) {
     }
 
-    StateDitRest *STATE_DIT_REST = new StateDitRest();
+    StateDahRest *STATE_DAH_REST = new StateDahRest();
 }

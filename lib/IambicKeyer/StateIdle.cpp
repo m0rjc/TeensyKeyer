@@ -3,12 +3,12 @@
 
 namespace IambicKeyer {
     const void StateIdle::onEnter(IStateContext *context) {
-        context->setTimeout(300); // 3 dits for character space
+        context->setTimeout(TIME_CHARACTER_GAP); // 3 dits for character space
     }
 
     const void StateIdle::onTimeout(IStateContext *context) {
         context->getDecoder().onCharacterGap();
-        context->setTimeout(300); // 3 dits for character space
+        context->setTimeout(TIME_CHARACTER_GAP); // 3 dits for character space
     }
 
     const void StateIdle::onSwitchChange(IStateContext *context) {

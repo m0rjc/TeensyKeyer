@@ -5,17 +5,10 @@
 
 namespace IambicKeyer {
 
-    enum KeyerState {
-        idle = 0,
-        dit = 1,
-        ditRest = 2,
-        dah = 3,
-        dahRest = 4,
-        iambicDit = 5,
-        iambicDitRest = 6,
-        iambicDah = 7,
-        iambicDahRest = 8 
-    };
+    const unsigned int TIME_DIT = 100;
+    const unsigned int TIME_DAH = 300;
+    const unsigned int TIME_GAP = 100;
+    const unsigned int TIME_CHARACTER_GAP = 300;
 
     class IState;
 

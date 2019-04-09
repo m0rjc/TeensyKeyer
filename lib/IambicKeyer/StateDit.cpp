@@ -3,7 +3,7 @@
 
 namespace IambicKeyer {
     const void StateDit::onEnter(IStateContext *context) {
-        context->setTimeout(100); // 1 dit for a dit
+        context->setTimeout(TIME_DIT);
         context->getSideTone().txOn();
         context->clearSqueezeCapture();
     }
