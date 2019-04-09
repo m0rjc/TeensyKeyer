@@ -1,16 +1,16 @@
 #include "IambicKeyerStates.h"
 
 namespace IambicKeyer {
-    const void StateIdle::onEnter(IStateContext *context) {
+    void StateIdle::onEnter(IStateContext *context) {
         context->setTimeout(TIME_CHARACTER_GAP); // 3 dits for character space
     }
 
-    const void StateIdle::onTimeout(IStateContext *context) {
+    void StateIdle::onTimeout(IStateContext *context) {
         context->getDecoder().onCharacterGap();
         context->setTimeout(TIME_CHARACTER_GAP); // 3 dits for character space
     }
 
-    const void StateIdle::onSwitchChange(IStateContext *context) {
+    void StateIdle::onSwitchChange(IStateContext *context) {
         switch(context->readSwitches()) {
             case Common::KeyInput::none:
                 break;

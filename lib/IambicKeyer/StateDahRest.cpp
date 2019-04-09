@@ -1,11 +1,11 @@
 #include "IambicKeyerStates.h"
 
 namespace IambicKeyer {
-    const void StateDahRest::onEnter(IStateContext *context) {
+    void StateDahRest::onEnter(IStateContext *context) {
         context->setTimeout(TIME_GAP); // 1 dit for a rest
     }
 
-    const void StateDahRest::onTimeout(IStateContext *context) {
+    void StateDahRest::onTimeout(IStateContext *context) {
         IState *nextState = STATE_IDLE;
 
         if(context->isSqueezeCaptured()) {
@@ -29,7 +29,7 @@ namespace IambicKeyer {
         context->enterState(nextState);
     }
 
-    const void StateDahRest::onSwitchChange(IStateContext *context) {
+    void StateDahRest::onSwitchChange(IStateContext *context) {
     }
 
     StateDahRest *STATE_DAH_REST = new StateDahRest();

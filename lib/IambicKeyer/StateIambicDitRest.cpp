@@ -1,11 +1,11 @@
 #include "IambicKeyerStates.h"
 
 namespace IambicKeyer {
-    const void StateIambicDitRest::onEnter(IStateContext *context) {
+    void StateIambicDitRest::onEnter(IStateContext *context) {
         context->setTimeout(TIME_GAP); 
     }
 
-    const void StateIambicDitRest::onTimeout(IStateContext *context) {
+    void StateIambicDitRest::onTimeout(IStateContext *context) {
         IState *nextState = STATE_IDLE;
 
         switch(context->readSwitches()) {
@@ -27,7 +27,7 @@ namespace IambicKeyer {
         context->enterState(nextState);
     }
 
-    const void StateIambicDitRest::onSwitchChange(IStateContext *context) {
+    void StateIambicDitRest::onSwitchChange(IStateContext *context) {
     }
 
     StateIambicDitRest  *STATE_IAMBIC_DIT_REST = new StateIambicDitRest();

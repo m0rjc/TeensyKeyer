@@ -26,9 +26,9 @@ namespace IambicKeyer {
 
     class IState {
         public:
-        const virtual  void onEnter(IStateContext *context) = 0;
-        const virtual  void onTimeout(IStateContext *context) = 0;
-        const virtual  void onSwitchChange(IStateContext *context) = 0;
+        virtual void onEnter(IStateContext *context) = 0;
+        virtual void onTimeout(IStateContext *context) = 0;
+        virtual void onSwitchChange(IStateContext *context) = 0;
     };
 
     class StateDriver : public IStateContext {
@@ -73,73 +73,73 @@ namespace IambicKeyer {
     };
 
     class StateIdle : public IState {
-        const void onEnter(IStateContext *context);
-        const void onTimeout(IStateContext *context);
-        const void onSwitchChange(IStateContext *context);
+        void onEnter(IStateContext *context);
+        void onTimeout(IStateContext *context);
+        void onSwitchChange(IStateContext *context);
     };
 
     extern StateIdle *STATE_IDLE;
 
     class StateDit : public IState {
-        const void onEnter(IStateContext *context);
-        const void onTimeout(IStateContext *context);
-        const void onSwitchChange(IStateContext *context);
+        void onEnter(IStateContext *context);
+        void onTimeout(IStateContext *context);
+        void onSwitchChange(IStateContext *context);
     };
 
     extern StateDit *STATE_DIT;
 
     class StateDitRest : public IState {
-        const void onEnter(IStateContext *context);
-        const void onTimeout(IStateContext *context);
-        const void onSwitchChange(IStateContext *context);
+        void onEnter(IStateContext *context);
+        void onTimeout(IStateContext *context);
+        void onSwitchChange(IStateContext *context);
     };
 
     extern StateDitRest *STATE_DIT_REST;
 
     class StateIambicDit : public IState {
-        const void onEnter(IStateContext *context);
-        const void onTimeout(IStateContext *context);
-        const void onSwitchChange(IStateContext *context);
+        void onEnter(IStateContext *context);
+        void onTimeout(IStateContext *context);
+        void onSwitchChange(IStateContext *context);
     };
 
     extern StateIambicDit *STATE_IAMBIC_DIT;
 
     class StateIambicDitRest : public IState {
-        const void onEnter(IStateContext *context);
-        const void onTimeout(IStateContext *context);
-        const void onSwitchChange(IStateContext *context);
+        void onEnter(IStateContext *context);
+        void onTimeout(IStateContext *context);
+        void onSwitchChange(IStateContext *context);
     };
 
     extern StateIambicDitRest *STATE_IAMBIC_DIT_REST;
 
     class StateDah : public IState {
-        const void onEnter(IStateContext *context);
-        const void onTimeout(IStateContext *context);
-        const void onSwitchChange(IStateContext *context);
+        void onEnter(IStateContext *context);
+        void onTimeout(IStateContext *context);
+        void onSwitchChange(IStateContext *context);
     };
 
     extern StateDah *STATE_DAH;
 
     class StateDahRest : public IState {
-        const void onEnter(IStateContext *context);
-        const void onTimeout(IStateContext *context);
-        const void onSwitchChange(IStateContext *context);
+        void onEnter(IStateContext *context);
+        void onTimeout(IStateContext *context);
+        void onSwitchChange(IStateContext *context);
     };
 
     extern StateDahRest *STATE_DAH_REST;
 
     class StateIambicDah : public IState {
-        const void onEnter(IStateContext *context);
-        const void onTimeout(IStateContext *context);
-        const void onSwitchChange(IStateContext *context);
+        void onEnter(IStateContext *context);
+        void onTimeout(IStateContext *context);
+        void onSwitchChange(IStateContext *context);
     };
 
     extern StateIambicDah *STATE_IAMBIC_DAH;
 
     class StateIambicDahRest : public IState {
-        const void onEnter(IStateContext *context);
-        const void onTimeout(IStateContext *context);
-        const void onSwitchChange(IStateContext *context);
+        void onEnter(IStateContext *context);
+        void onTimeout(IStateContext *context);
+        void onSwitchChange(IStateContext *context);
     };
 
     extern StateIambicDahRest *STATE_IAMBIC_DAH_REST;

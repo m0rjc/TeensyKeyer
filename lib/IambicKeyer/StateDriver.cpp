@@ -3,6 +3,9 @@
 
 namespace IambicKeyer {
 
+    const unsigned int MIN_RATE = 5;
+    const unsigned int MAX_RATE = 50;
+
     void StateDriver::init(IState *initialState) {
         setRate(20);
         setKeyerMode(Common::KeyerMode::modeB);
@@ -33,8 +36,8 @@ namespace IambicKeyer {
     }
 
     void StateDriver::setRate(unsigned int wpm) {
-        if(wpm < 5) wpm = 5;
-        if(wpm > 50) wpm = 50;
+        if(wpm < MIN_RATE) wpm = MIN_RATE;
+        if(wpm > MAX_RATE) wpm = MAX_RATE;
         m_ditInterval = 1200/wpm;
     }
 
