@@ -132,6 +132,15 @@ void givenIambicLInModeAOutputsL()
                  ".-..");
 }
 
+void givenNoInputOutputsStreamOfCharacterGaps()
+{
+    runKeyerTest(KeyerMode::modeA,
+            //    :...:...:...:...:...:...:...:...:...:...:...:...  (48 chars)
+                 "                                                ",
+                 "                                                ",
+                 "    ");
+}
+
 void runKeyerTests() {
     RUN_TEST(givenMorseLetterAOutputsA);
     RUN_TEST(givenMorseLetterIOutputsI);
@@ -143,4 +152,5 @@ void runKeyerTests() {
     RUN_TEST(givenIambicFInModeBOutputsF);
     RUN_TEST(givenIambicLInModeBOutputsL);
     RUN_TEST(givenIambicLInModeAOutputsL);
+    RUN_TEST(givenNoInputOutputsStreamOfCharacterGaps);
 }
