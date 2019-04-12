@@ -4,183 +4,192 @@
 #include "MorseDecode.h"
 #include "MorseCharacters.h"
 
-#define DIT MorseDecode::onDit()
-#define DAH MorseDecode::onDah()
-#define REST MorseDecode::onCharacterGap()
-
 const unsigned short GAPS_FOR_SPACE=3;
 
-static unsigned short lastSymbol = 0xFF;
-static unsigned int called = 0;
-
-static void onSymbol(unsigned short symbol)
+class MockCallback : public Common::ISymbolCallback
 {
-    lastSymbol = symbol;
-    called++;
-}
+    public: 
+    unsigned short lastSymbol = 0xFF;
+    unsigned int called = 0;
 
-static void beforeEach()
-{
-    lastSymbol = 0xFF;
-    called = 0;
-    MorseDecode::init(onSymbol);
-}
+    void onSymbol(unsigned short symbol)
+    {
+        lastSymbol = symbol;
+        called++;
+    }
+};
 
 void itDoesntGenerateSpuriousOutputOnStartup() {
-    beforeEach();
-    REST;
-    TEST_ASSERT_EQUAL(0, called);
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback); 
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(0, callback.called);
 }
 
 void itDoesNotGenerateSpuriousSpaceOnIdleAtStartup() {
-    beforeEach();
-    for(int i = 0; i < 100; i++) REST;
-    TEST_ASSERT_EQUAL(0, called);
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback);
+    for(int i = 0; i < 100; i++) decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(0, callback.called);
 }
 
 void whenReceivingLetterA_givesCorrectCode()
 {
-    beforeEach();
-    DIT;
-    DAH;
-    REST;
-    TEST_ASSERT_EQUAL(MORSE_A, lastSymbol);
-    TEST_ASSERT_EQUAL(1, called);
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback);
+    decoder.onDit();
+    decoder.onDah();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_A, callback.lastSymbol);
+    TEST_ASSERT_EQUAL(1, callback.called);
 }
 
 void whenReceivingLetterN_givesCorrectCode()
 {
-    beforeEach();
-    DAH;
-    DIT;
-    REST;
-    TEST_ASSERT_EQUAL(MORSE_N, lastSymbol);
-    TEST_ASSERT_EQUAL(1, called);
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback);
+    decoder.onDah();
+    decoder.onDit();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_N, callback.lastSymbol);
+    TEST_ASSERT_EQUAL(1, callback.called);
 }
 
 void whenReceivingWordParis_givesCorrectCodes()
 {
-    beforeEach();
-    DIT;
-    DAH;
-    DAH;
-    DIT;
-    REST;
-    TEST_ASSERT_EQUAL(MORSE_P, lastSymbol);
-    DIT;
-    DAH;
-    REST;
-    TEST_ASSERT_EQUAL(MORSE_A, lastSymbol);
-    DIT;
-    DAH;
-    DIT;
-    REST;
-    TEST_ASSERT_EQUAL(MORSE_R, lastSymbol);
-    DIT;
-    DIT;
-    REST;
-    TEST_ASSERT_EQUAL(MORSE_I, lastSymbol);
-    DIT;
-    DIT;
-    DIT;
-    REST;
-    TEST_ASSERT_EQUAL(MORSE_S, lastSymbol);
-    TEST_ASSERT_EQUAL(5, called);
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback);
+    decoder.onDit();
+    decoder.onDah();
+    decoder.onDah();
+    decoder.onDit();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_P, callback.lastSymbol);
+    decoder.onDit();
+    decoder.onDah();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_A, callback.lastSymbol);
+    decoder.onDit();
+    decoder.onDah();
+    decoder.onDit();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_R, callback.lastSymbol);
+    decoder.onDit();
+    decoder.onDit();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_I, callback.lastSymbol);
+    decoder.onDit();
+    decoder.onDit();
+    decoder.onDit();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_S, callback.lastSymbol);
+    TEST_ASSERT_EQUAL(5, callback.called);
 }
 
 void whenLessThanWordSpaceReceivedDoesNotSendSpace()
 {
-    beforeEach();
-    DIT;
-    for(int i = 1; i < GAPS_FOR_SPACE; i++) REST;
-    TEST_ASSERT_EQUAL(MORSE_E, lastSymbol);
-    TEST_ASSERT_EQUAL(1, called);
-    DAH;
-    REST;
-    TEST_ASSERT_EQUAL(MORSE_T, lastSymbol);
-    TEST_ASSERT_EQUAL(2, called);
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback);
+    decoder.onDit();
+    for(int i = 1; i < GAPS_FOR_SPACE; i++) decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_E, callback.lastSymbol);
+    TEST_ASSERT_EQUAL(1, callback.called);
+    decoder.onDah();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_T, callback.lastSymbol);
+    TEST_ASSERT_EQUAL(2, callback.called);
 }
 
 void whenWordSpaceSpacesReceivedSendsSpace()
 {
-    beforeEach();
-    DIT;
-    REST;
-    TEST_ASSERT_EQUAL(MORSE_E, lastSymbol);
-    for(int i = 1; i < GAPS_FOR_SPACE; i++) REST;
-    TEST_ASSERT_EQUAL(MORSE_SPACE, lastSymbol);
-    TEST_ASSERT_EQUAL(2, called);
-    DAH;
-    REST;
-    TEST_ASSERT_EQUAL(MORSE_T, lastSymbol);
-    TEST_ASSERT_EQUAL(3, called);
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback);
+    decoder.onDit();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_E, callback.lastSymbol);
+    for(int i = 1; i < GAPS_FOR_SPACE; i++) decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_SPACE, callback.lastSymbol);
+    TEST_ASSERT_EQUAL(2, callback.called);
+    decoder.onDah();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_T, callback.lastSymbol);
+    TEST_ASSERT_EQUAL(3, callback.called);
 }
 
 void whenLeftIdleItOnlySendsSpaceOnce()
 {
-    beforeEach();
-    DIT;
-    REST;
-    TEST_ASSERT_EQUAL(1, called);
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback);
+    decoder.onDit();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(1, callback.called);
     for (int i = 0; i < 20; i++)
-        REST;
-    TEST_ASSERT_EQUAL(2, called);
-    TEST_ASSERT_EQUAL(MORSE_SPACE, lastSymbol);
-    DIT;
-    REST;
-    TEST_ASSERT_EQUAL(3, called);
-    TEST_ASSERT_EQUAL(MORSE_E, lastSymbol);
+        decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(2, callback.called);
+    TEST_ASSERT_EQUAL(MORSE_SPACE, callback.lastSymbol);
+    decoder.onDit();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(3, callback.called);
+    TEST_ASSERT_EQUAL(MORSE_E, callback.lastSymbol);
 }
 
 void whenReceivingEigthDitSendsBackspace()
 {
-    beforeEach();
-    for(int i = 0; i < 7; i++) DIT;
-    TEST_ASSERT_EQUAL(0, called);
-    DIT;
-    TEST_ASSERT_EQUAL(1, called);
-    TEST_ASSERT_EQUAL(MORSE_BACKSPACE, lastSymbol);
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback);
+
+    for(int i = 0; i < 7; i++) decoder.onDit();
+    TEST_ASSERT_EQUAL(0, callback.called);
+    decoder.onDit();
+    TEST_ASSERT_EQUAL(1, callback.called);
+    TEST_ASSERT_EQUAL(MORSE_BACKSPACE, callback.lastSymbol);
 }
 
 void whenReceivingSixteenthDitSendsBackspaceAgain()
 {
-    beforeEach();
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback);
     for (int i = 0; i < 15; i++)
-        DIT;
-    TEST_ASSERT_EQUAL(1, called);
-    DIT;
-    TEST_ASSERT_EQUAL(2, called);
-    TEST_ASSERT_EQUAL(MORSE_BACKSPACE, lastSymbol);
+        decoder.onDit();
+    TEST_ASSERT_EQUAL(1, callback.called);
+    decoder.onDit();
+    TEST_ASSERT_EQUAL(2, callback.called);
+    TEST_ASSERT_EQUAL(MORSE_BACKSPACE, callback.lastSymbol);
 }
 
 void whenReceivingAllDitsSendsBackspaceRepeatedly()
 {
-    beforeEach();
-    for(int run = 1; run <= 100; run++) {
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback);
+
+    for (int run = 1; run <= 100; run++)
+    {
         for(int dit = 0; dit < 8; dit++) {
-            DIT;
+            decoder.onDit();
         }
-        TEST_ASSERT_EQUAL(MORSE_BACKSPACE, lastSymbol);
-        TEST_ASSERT_EQUAL(run, called);    
+        TEST_ASSERT_EQUAL(MORSE_BACKSPACE, callback.lastSymbol);
+        TEST_ASSERT_EQUAL(run, callback.called);    
     }
-    REST;
-    DAH;
-    REST;
-    TEST_ASSERT_EQUAL(MORSE_T, lastSymbol);
+    decoder.onCharacterGap();
+    decoder.onDah();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(MORSE_T, callback.lastSymbol);
 }
 
 void itDoesNotSendASpuriousAllDitCharacterAfterHoldingDownBackspace() {
-    beforeEach();
+    MockCallback callback;
+    MorseDecode::MorseDecoder decoder(callback);
+
     for (int i = 0; i < 18; i++)
-        DIT;
-    TEST_ASSERT_EQUAL(2, called);
-    TEST_ASSERT_EQUAL(MORSE_BACKSPACE, lastSymbol);
-    REST;
-    TEST_ASSERT_EQUAL(2, called);
-    DAH;
-    REST;
-    TEST_ASSERT_EQUAL(3, called);
-    TEST_ASSERT_EQUAL(MORSE_T, lastSymbol);
+        decoder.onDit();
+    TEST_ASSERT_EQUAL(2, callback.called);
+    TEST_ASSERT_EQUAL(MORSE_BACKSPACE, callback.lastSymbol);
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(2, callback.called);
+    decoder.onDah();
+    decoder.onCharacterGap();
+    TEST_ASSERT_EQUAL(3, callback.called);
+    TEST_ASSERT_EQUAL(MORSE_T, callback.lastSymbol);
 }
 
 void setup()

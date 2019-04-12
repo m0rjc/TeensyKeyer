@@ -7,45 +7,30 @@
 const unsigned short GAPS_FOR_SPACE=3;
 
 namespace MorseDecode {
-    static symbolCallback m_callback;
-    static bool m_lastIsDah = false;
-    static bool m_isBackspacing = false;
-    static bool m_isIdle = true;
-    static unsigned char m_counter = 0;
-    static unsigned short m_currentSymbol;
-    static unsigned char m_numberOfSpaces = 0;
-
-    static void startCharacter()
+    void MorseDecoder::startCharacter(void)
     {
         m_currentSymbol = 0;
         m_counter = 0;
         m_lastIsDah = false;
     }
 
-    static inline void onNoLongerIdle()
+    void MorseDecoder::onNoLongerIdle(void)
     {
         m_isIdle = false;
         m_numberOfSpaces = 0;
     }
 
-    static void onLongSymbol()
+    void MorseDecoder::onLongSymbol(void)
     {
         if (m_currentSymbol == 0)
         { // ........
-            if(m_callback) m_callback(MORSE_BACKSPACE);
+            m_callback.onSymbol(MORSE_BACKSPACE);
             m_isBackspacing = true;
         }
         startCharacter();
     }
 
-    void init(symbolCallback callback) {
-        m_callback = callback;
-        m_numberOfSpaces = 0;
-        m_isIdle = true;
-        startCharacter();
-    }
-
-    void onDit() {
+    void MorseDecoder::onDit() {
         onNoLongerIdle();
         m_lastIsDah = false;
         m_counter++;
@@ -55,7 +40,7 @@ namespace MorseDecode {
         }
     }
 
-    void onDah()
+    void MorseDecoder::onDah()
     {
         onNoLongerIdle();
         m_isBackspacing = false;
@@ -68,7 +53,7 @@ namespace MorseDecode {
         }
     }
 
-    void onCharacterGap()
+    void MorseDecoder::onCharacterGap()
     {
         // Discard spurious dits after the user leans on dit for backspace
         if(m_isBackspacing) {
@@ -90,10 +75,10 @@ namespace MorseDecode {
                         m_currentSymbol |= (1 << m_counter);
                     }
                 }
-                if(m_callback) m_callback(m_currentSymbol);
+                m_callback.onSymbol(m_currentSymbol);
                 startCharacter();
             } else if (m_numberOfSpaces == GAPS_FOR_SPACE) {
-                if(m_callback) m_callback(MORSE_SPACE);
+                m_callback.onSymbol(MORSE_SPACE);
                 m_isIdle = true;            
             }
         }

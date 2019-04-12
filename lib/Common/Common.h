@@ -34,6 +34,11 @@ class IKeyHardware
         virtual void onCharacterGap(void) = 0;
     };
 
+    class ISymbolCallback {
+        public:
+        virtual void onSymbol(unsigned short symbol) = 0;
+    };
+
     class IPinOutput {
         public:
         virtual void txOn(void) = 0;
