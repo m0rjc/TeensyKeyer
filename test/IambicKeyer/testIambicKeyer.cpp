@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "IambicKeyer.h"
-#include "Mocks.h"
+#include "../Common/Mocks.h"
 
 using namespace IambicKeyer;
 using namespace Common;
@@ -12,18 +12,19 @@ void runKeyerTest(KeyerMode mode, const char *inputWaveform, const char *toneWav
     HardwareMock hardware;
     DecoderMock decoder;
     SideToneMock sideTone;
+    pollingLoopTime_t currentTime = 0;
 
     char actualTone[49];
 
-    const uint32_t timeInterval = calculateTimeout(DEFAULT_WPM, 25); // We're working in quarter dits.
+    const pollingLoopTime_t timeInterval = calculateTimeout(DEFAULT_WPM, 25); // We're working in quarter dits.
 
     IambicKeyer::Keyer keyer(hardware, decoder, sideTone);
     keyer.setMode(mode);
-    keyer.poll();
+    keyer.poll(currentTime);
 
     int i;
     for(i = 0; inputWaveform[i] && toneWaveform[i && i < 48]; i++) {
-        hardware.currentTime += timeInterval;
+        currentTime += timeInterval;
 
         switch(inputWaveform[i]) {
             case ' ':
@@ -40,7 +41,7 @@ void runKeyerTest(KeyerMode mode, const char *inputWaveform, const char *toneWav
                 break;
         }
 
-        keyer.poll();
+        keyer.poll(currentTime);
 
         actualTone[i] = sideTone.isTx ? '*' : ' ';
     }

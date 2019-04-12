@@ -2,9 +2,10 @@
 #include <unity.h>
 
 #include "IambicKeyer.h"
-#include "Mocks.h"
+#include "../Common/Mocks.h"
 
 using namespace IambicKeyer;
+using Common::pollingLoopTime_t;
 
 class StateMock : public IState {
     public:
@@ -47,18 +48,20 @@ class StateMock : public IState {
 };
 
 void theTestHarnessMathsDoesNotOverflow() {
-    TEST_ASSERT_EQUAL((uint32_t)2400, calculateTimeout(1, 200)); // One whole DIT (mark+space) at 1wpm.
-    TEST_ASSERT_EQUAL((uint32_t)4800, calculateTimeout(1, 400)); // One whole DAH (mark+space) at 1wpm.
-    TEST_ASSERT_EQUAL((uint32_t)24,   calculateTimeout(50, 100)); // Mark only for the DIT at 50wpm.
+    TEST_ASSERT_EQUAL((pollingLoopTime_t)2400, calculateTimeout(1, 200)); // One whole DIT (mark+space) at 1wpm.
+    TEST_ASSERT_EQUAL((pollingLoopTime_t)4800, calculateTimeout(1, 400)); // One whole DAH (mark+space) at 1wpm.
+    TEST_ASSERT_EQUAL((pollingLoopTime_t)24,   calculateTimeout(50, 100)); // Mark only for the DIT at 50wpm.
 }
 
-void onInitialise_itCallsOnEnterInTheInitialState() {
+void onFirstPoll_itCallsOnEnterInTheInitialState() {
     StateMock initialState;
     HardwareMock hardware;
     DecoderMock decoder;
     SideToneMock sideTone;
 
     StateDriver driver(hardware, decoder, sideTone, &initialState);
+
+    driver.poll(0);
 
     TEST_ASSERT_EQUAL(1, initialState.enterCalledCount);
 }
@@ -71,6 +74,8 @@ void onInitialise_startsUpInModeB() {
 
     StateDriver driver(hardware, decoder, sideTone, &initialState);
 
+    driver.poll(0);
+
     TEST_ASSERT_EQUAL(KeyerMode::modeB, initialState.modeOnEnter);
 }
 
@@ -79,30 +84,31 @@ void setTimeout_willCallBackInTheSpecifiedTimeOnceOnly() {
     HardwareMock hardware;
     DecoderMock decoder;
     SideToneMock sideTone;
+    pollingLoopTime_t currentTime = 10000;
 
     unsigned int timeoutVal = 400;
     initialState.timeoutToSetOnEnter = &timeoutVal;
 
-    hardware.currentTime = 10000;
-
     StateDriver driver(hardware, decoder, sideTone, &initialState);
+    driver.poll(currentTime);
 
-    hardware.currentTime += calculateTimeout(DEFAULT_WPM, timeoutVal) - 1;
-    driver.poll();
+    currentTime += calculateTimeout(DEFAULT_WPM, timeoutVal) - 1;
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(0, initialState.timeoutCalledCount);
 
-    hardware.currentTime += 1;
-    driver.poll();
+    currentTime += 1;
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(1, initialState.timeoutCalledCount);
 
-    hardware.currentTime += calculateTimeout(DEFAULT_WPM, 400);
-    driver.poll();
+    currentTime += calculateTimeout(DEFAULT_WPM, 400);
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(1, initialState.timeoutCalledCount);
 }
 
 void setRate_producesTimeIntervalOfDesiredRate()
 {
-    // This tests both entering a timeout from transition and changing rate, because I can't change the initial rate.
+    // This tests both entering a timeout from transition and changing rate. Earlier code did not allow me to set an
+    // initial rate before first allowing the State to activate.
     // This doesn't matter in the live application because the device will sit there doing character gaps until the human
     // has time to reach for the keys.
     StateMock initialState;
@@ -110,6 +116,7 @@ void setRate_producesTimeIntervalOfDesiredRate()
     HardwareMock hardware;
     DecoderMock decoder;
     SideToneMock sideTone;
+    pollingLoopTime_t currentTime = 10000;
 
     unsigned int timeoutVal1 = 50;
     initialState.timeoutToSetOnEnter = &timeoutVal1;
@@ -118,21 +125,20 @@ void setRate_producesTimeIntervalOfDesiredRate()
     unsigned int timeoutVal2 = 100;
     secondState.timeoutToSetOnEnter = &timeoutVal2;
 
-    hardware.currentTime = 10000;
-
     StateDriver driver(hardware, decoder, sideTone, &initialState);
+    driver.poll(currentTime);  // Before rate change to simulate old behaviour.
     driver.setRate(12);
 
-    hardware.currentTime += calculateTimeout(DEFAULT_WPM, timeoutVal1);
-    driver.poll();
+    currentTime += calculateTimeout(DEFAULT_WPM, timeoutVal1);
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(1, initialState.timeoutCalledCount);
 
-    hardware.currentTime += calculateTimeout(12, timeoutVal2) - 1;
-    driver.poll();
+    currentTime += calculateTimeout(12, timeoutVal2) - 1;
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(0, secondState.timeoutCalledCount);
 
-    hardware.currentTime += 1;
-    driver.poll();
+    currentTime += 1;
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(1, secondState.timeoutCalledCount);
 }
 
@@ -141,53 +147,45 @@ void setTimeout_willHandleTimerOverflowCorrectly() {
     HardwareMock hardware;
     DecoderMock decoder;
     SideToneMock sideTone;
+    pollingLoopTime_t currentTime = 0xFFFFFFF0UL;
 
     unsigned int timeoutVal = 400;
     initialState.timeoutToSetOnEnter = &timeoutVal;
 
-    hardware.currentTime = 0xFFFFFFF0UL;
-
     StateDriver driver(hardware, decoder, sideTone, &initialState);
+    driver.poll(currentTime);
 
-    hardware.currentTime = calculateTimeout(DEFAULT_WPM, timeoutVal) - 0x11;
-    driver.poll();
+    currentTime = calculateTimeout(DEFAULT_WPM, timeoutVal) - 0x11;
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(0, initialState.timeoutCalledCount);
 
-    hardware.currentTime += 1;
-    driver.poll();
+    currentTime += 1;
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(1, initialState.timeoutCalledCount);
 }
 
 void setTimeout_canHandleTheLongestExpectedTime() {
     StateMock initialState;
-    StateMock secondState;
     HardwareMock hardware;
     DecoderMock decoder;
     SideToneMock sideTone;
+    pollingLoopTime_t currentTime = 10000;
 
-    unsigned int timeoutVal1 = 50;
+    unsigned int timeoutVal1 = 400;
     initialState.timeoutToSetOnEnter = &timeoutVal1;
-    initialState.stateFromTimeout = &secondState;
-
-    unsigned int timeoutVal2 = 400;
-    secondState.timeoutToSetOnEnter = &timeoutVal2;
-
-    hardware.currentTime = 10000;
 
     StateDriver driver(hardware, decoder, sideTone, &initialState);
+    // Rate set before starting state engine, so we can test this in a single transition.
     driver.setRate(5);
+    driver.poll(currentTime);
 
-    hardware.currentTime += calculateTimeout(DEFAULT_WPM, timeoutVal1);
-    driver.poll();
+    currentTime += calculateTimeout(5, timeoutVal1) - 1;
+    driver.poll(currentTime);
+    TEST_ASSERT_EQUAL(0, initialState.timeoutCalledCount);
+
+    currentTime += 1;
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(1, initialState.timeoutCalledCount);
-
-    hardware.currentTime += calculateTimeout(5, timeoutVal2) - 1;
-    driver.poll();
-    TEST_ASSERT_EQUAL(0, secondState.timeoutCalledCount);
-
-    hardware.currentTime += 1;
-    driver.poll();
-    TEST_ASSERT_EQUAL(1, secondState.timeoutCalledCount);
 }
 
 void setTimeout_canHandleTheShortestExpectedTime() {
@@ -197,6 +195,7 @@ void setTimeout_canHandleTheShortestExpectedTime() {
     HardwareMock hardware;
     DecoderMock decoder;
     SideToneMock sideTone;
+    pollingLoopTime_t currentTime = 10000;
 
     unsigned int timeoutVal1 = 50;
     initialState.timeoutToSetOnEnter = &timeoutVal1;
@@ -205,21 +204,20 @@ void setTimeout_canHandleTheShortestExpectedTime() {
     unsigned int timeoutVal2 = 75;
     secondState.timeoutToSetOnEnter = &timeoutVal2;
 
-    hardware.currentTime = 10000;
-
     StateDriver driver(hardware, decoder, sideTone, &initialState);
+    driver.poll(currentTime);
     driver.setRate(50);
 
-    hardware.currentTime += calculateTimeout(DEFAULT_WPM, timeoutVal1);
-    driver.poll();
+    currentTime += calculateTimeout(DEFAULT_WPM, timeoutVal1);
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(1, initialState.timeoutCalledCount);
 
-    hardware.currentTime += calculateTimeout(50, timeoutVal2) - 1;
-    driver.poll();
+    currentTime += calculateTimeout(50, timeoutVal2) - 1;
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(0, secondState.timeoutCalledCount);
 
-    hardware.currentTime += 1;
-    driver.poll();
+    currentTime += 1;
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(1, secondState.timeoutCalledCount);
 }
 
@@ -228,14 +226,15 @@ void pollWillNotifyStateOnSwitchChange() {
     HardwareMock hardware;
     DecoderMock decoder;
     SideToneMock sideTone;
+    pollingLoopTime_t currentTime = 10000;
 
     StateDriver driver(hardware, decoder, sideTone, &initialState);
 
-    driver.poll();
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(0, initialState.switchChangeCalledCount);
 
     hardware.currentInput = KeyInput::dit;
-    driver.poll();
+    driver.poll(currentTime);
     TEST_ASSERT_EQUAL(1, initialState.switchChangeCalledCount);
     TEST_ASSERT_EQUAL(KeyInput::dit, initialState.lastSwitchState);
     TEST_ASSERT_EQUAL(false, initialState.squeezeCaptured);
@@ -246,22 +245,23 @@ void squeezeCanBeCapturedAcrossTimouts() {
     HardwareMock hardware;
     DecoderMock decoder;
     SideToneMock sideTone;
+    pollingLoopTime_t currentTime = 10000;
 
     unsigned int timeout1 = 100;
     initialState.timeoutToSetOnEnter = &timeout1;
 
     StateDriver driver(hardware, decoder, sideTone, &initialState);
 
-    driver.poll();
+    driver.poll(currentTime);
 
     hardware.currentInput = KeyInput::squeeze;
-    driver.poll(); 
+    driver.poll(currentTime); 
 
     hardware.currentInput = KeyInput::dah;
-    driver.poll();
+    driver.poll(currentTime);
 
-    hardware.currentTime += calculateTimeout(DEFAULT_WPM, timeout1);
-    driver.poll();
+    currentTime += calculateTimeout(DEFAULT_WPM, timeout1);
+    driver.poll(currentTime);
 
     TEST_ASSERT_EQUAL(KeyInput::dah, initialState.keysOnTimeout);
     TEST_ASSERT_EQUAL(true, initialState.squeezeCapturedOnTimeout);
@@ -270,7 +270,7 @@ void squeezeCanBeCapturedAcrossTimouts() {
 void runStateDriverTests()
 {
     RUN_TEST(theTestHarnessMathsDoesNotOverflow);
-    RUN_TEST(onInitialise_itCallsOnEnterInTheInitialState);
+    RUN_TEST(onFirstPoll_itCallsOnEnterInTheInitialState);
     RUN_TEST(onInitialise_startsUpInModeB);
     RUN_TEST(setTimeout_willCallBackInTheSpecifiedTimeOnceOnly);
     RUN_TEST(setRate_producesTimeIntervalOfDesiredRate);

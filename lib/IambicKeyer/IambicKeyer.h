@@ -17,11 +17,17 @@ namespace IambicKeyer {
                   Common::ISideToneHardware &sideTone) : 
                   m_stateDriver(hardware, decoder, sideTone, STATE_IDLE) {}
 
-            void setRate(unsigned int wpm);
+            void setRate(unsigned int wpm) {
+                m_stateDriver.setRate(wpm);
+            }
 
-            void setMode(Common::KeyerMode mode);
+            void setMode(Common::KeyerMode mode) {
+                m_stateDriver.setKeyerMode(mode);
+            }
 
-            void poll(void);
+            void poll(Common::pollingLoopTime_t tick) {
+                m_stateDriver.poll(tick);
+            }
     };
 }
 

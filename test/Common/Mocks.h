@@ -4,18 +4,15 @@ using namespace Common;
 
 const int DEFAULT_WPM = 20;
 
-inline uint32_t calculateTimeout(unsigned int wpm, unsigned int centiDits)
+inline pollingLoopTime_t calculateTimeout(unsigned int wpm, unsigned int centiDits)
 {
-    return (uint32_t)centiDits * 12 / wpm;
+    return (pollingLoopTime_t)centiDits * 12 / wpm;
 }
 
 class HardwareMock : public IKeyHardware
 {
   public:
-    uint32_t currentTime = 0;
     KeyInput currentInput = KeyInput::none;
-
-    uint32_t getTimeMillis(void) { return currentTime; }
     KeyInput readSwitches(void) { return currentInput; };
 };
 
@@ -40,6 +37,15 @@ class SideToneMock : public ISideToneHardware
 {
   public:
     bool isTx = false;
-    virtual void txOn(void) { isTx = true; }
-    virtual void txOff(void) { isTx = false; }
+    unsigned int callCount = 0;
+    virtual void txOn(void) { isTx = true; callCount++; }
+    virtual void txOff(void) { isTx = false; callCount++; }
+};
+
+class PinInputMock : public IPinInput
+{
+    public:
+    bool state = false;
+    void poll(pollingLoopTime_t tick) {}
+    bool isOn(void) { return state; }
 };

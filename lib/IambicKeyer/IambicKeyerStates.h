@@ -3,6 +3,8 @@
 
 #include "Common.h"
 
+using Common::pollingLoopTime_t;
+
 namespace IambicKeyer {
 
     const unsigned int TIME_DIT = 100;
@@ -38,10 +40,12 @@ namespace IambicKeyer {
             Common::ISideToneHardware &m_sideTone;
 
             IState *m_currentState;
+            bool m_started = false;
             bool m_timerRunning = false;
             bool m_squeezeCaptured = false;
-            uint32_t m_timerStarted = 0;
-            uint32_t m_timerDuration = 0;
+            pollingLoopTime_t m_timeNow;
+            pollingLoopTime_t m_timerStarted = 0;
+            pollingLoopTime_t m_timerDuration = 0;
             int m_ditInterval;
             Common::KeyInput m_switchState = Common::KeyInput::none;
             Common::KeyerMode m_keyerMode;
@@ -67,7 +71,7 @@ namespace IambicKeyer {
             Common::IMorseDecoder &getDecoder(void) { return m_decoder; }
             Common::ISideToneHardware &getSideTone(void) { return m_sideTone; }
 
-            void poll(void);
+            void poll(pollingLoopTime_t tick);
             void setRate(unsigned int wpm);
             void setKeyerMode(Common::KeyerMode mode) { m_keyerMode = mode; }
     };
