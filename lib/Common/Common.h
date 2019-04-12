@@ -34,7 +34,7 @@ class IKeyHardware
         virtual void onCharacterGap(void) = 0;
     };
 
-    class ISideToneHardware {
+    class IPinOutput {
         public:
         virtual void txOn(void) = 0;
         virtual void txOff(void) = 0;
@@ -46,7 +46,7 @@ class IKeyHardware
           virtual bool isOn(void) = 0;
     };
 
-    class SideToneRouterInput;
+    class OutputRouterInput;
 
     /**
      * Multi input to one or two output sidetone routing.
@@ -54,42 +54,42 @@ class IKeyHardware
      * An informational message generator would not want to key the radio.
      * Up to 8 inputs are combined by OR
      */
-    class SideToneRouter
+    class OutputRouter
     {
       private:
         unsigned char state : 1, 
                       inputs : 7, 
                       allocatedBits: 7;
 
-        ISideToneHardware **outputs;
+        IPinOutput **outputs;
 
         void onChange(void);
         unsigned char allocateBitMask(void);
         void freeBitMask(unsigned char);
 
       public:
-        SideToneRouter(ISideToneHardware &output);
-        SideToneRouter(ISideToneHardware &output1, ISideToneHardware &output2);
-        SideToneRouter(ISideToneHardware &output1, ISideToneHardware &output2, ISideToneHardware &output3);
+        OutputRouter(IPinOutput &output);
+        OutputRouter(IPinOutput &output1, IPinOutput &output2);
+        OutputRouter(IPinOutput &output1, IPinOutput &output2, IPinOutput &output3);
 
-        ~SideToneRouter();
+        ~OutputRouter();
 
-        friend class SideToneRouterInput;
+        friend class OutputRouterInput;
     };
 
-    class SideToneRouterInput : public ISideToneHardware
+    class OutputRouterInput : public IPinOutput
     {
         private:
-            SideToneRouter &router;
+            OutputRouter &router;
             uint8_t bitMask;
 
         public:
-            SideToneRouterInput(SideToneRouter &router) : router(router) 
+            OutputRouterInput(OutputRouter &router) : router(router) 
             {
                 bitMask = router.allocateBitMask();
             }
 
-            ~SideToneRouterInput() {
+            ~OutputRouterInput() {
                 router.freeBitMask(bitMask);
             }
 

@@ -14,7 +14,7 @@ namespace IambicKeyer {
         public:
             Keyer(Common::IKeyHardware &hardware,
                   Common::IMorseDecoder &decoder, 
-                  Common::ISideToneHardware &sideTone) : 
+                  Common::IPinOutput &sideTone) : 
                   m_stateDriver(hardware, decoder, sideTone, STATE_IDLE) {}
 
             void setRate(unsigned int wpm) {

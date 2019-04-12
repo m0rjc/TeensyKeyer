@@ -9,18 +9,18 @@ SideToneMock led;
 SideToneMock buzzer;
 
 // Each distinct output needs its own router.
-SideToneRouter onAirRouter(radio);
-SideToneRouter localRouter(led, buzzer);
+OutputRouter onAirRouter(radio);
+OutputRouter localRouter(led, buzzer);
 
 // A router combines inputs for both outputs.
-SideToneRouterInput onAirGroupInput(onAirRouter);
-SideToneRouterInput localGroupInput(localRouter);
-SideToneRouter bothRouter(onAirGroupInput, localGroupInput);
+OutputRouterInput onAirGroupInput(onAirRouter);
+OutputRouterInput localGroupInput(localRouter);
+OutputRouter bothRouter(onAirGroupInput, localGroupInput);
 
 // The three inputs
-SideToneRouterInput iambicKeyerInput(bothRouter);
-SideToneRouterInput straightKeyerInput(bothRouter);
-SideToneRouterInput localUxInput(localRouter);
+OutputRouterInput iambicKeyerInput(bothRouter);
+OutputRouterInput straightKeyerInput(bothRouter);
+OutputRouterInput localUxInput(localRouter);
 
 void itStartsAllOff() {
     TEST_ASSERT_EQUAL(false, radio.isTx);
@@ -97,7 +97,7 @@ void repeatCallsDoNotBreakIt() {
     TEST_ASSERT_EQUAL(false, radio.isTx);
 }
 
-void runSideToneRouterTests() {
+void runOutputRouterTests() {
     RUN_TEST(itStartsAllOff);
     RUN_TEST(theStraightKeyOperatesTheRadioTheLedAndTheBuzzer);
     RUN_TEST(theIambicKeyOperatesTheRadioTheLedAndTheBuzzer);

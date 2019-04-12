@@ -23,7 +23,7 @@ namespace IambicKeyer {
         virtual void enterState(IState *state) = 0;
         virtual Common::KeyerMode getKeyerMode(void) = 0;
         virtual Common::IMorseDecoder &getDecoder(void) = 0;
-        virtual Common::ISideToneHardware &getSideTone(void) = 0;
+        virtual Common::IPinOutput &getSideTone(void) = 0;
     };
 
     class IState {
@@ -37,7 +37,7 @@ namespace IambicKeyer {
         private:
             Common::IKeyHardware &m_hardware;
             Common::IMorseDecoder &m_decoder;
-            Common::ISideToneHardware &m_sideTone;
+            Common::IPinOutput &m_sideTone;
 
             IState *m_currentState;
             bool m_started = false;
@@ -55,7 +55,7 @@ namespace IambicKeyer {
         public:
             StateDriver(Common::IKeyHardware &hardware,
                         Common::IMorseDecoder &decoder, 
-                        Common::ISideToneHardware &sideTone,
+                        Common::IPinOutput &sideTone,
                         IState *initialState) :
                     m_hardware(hardware),
                     m_decoder(decoder),
@@ -69,7 +69,7 @@ namespace IambicKeyer {
             void enterState(IState *state);
             Common::KeyerMode getKeyerMode(void) { return m_keyerMode; }
             Common::IMorseDecoder &getDecoder(void) { return m_decoder; }
-            Common::ISideToneHardware &getSideTone(void) { return m_sideTone; }
+            Common::IPinOutput &getSideTone(void) { return m_sideTone; }
 
             void poll(pollingLoopTime_t tick);
             void setRate(unsigned int wpm);

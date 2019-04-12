@@ -2,7 +2,7 @@
 #include "Common.h"
 
 namespace Teensy31 {
-    class PinSidetoneHardware : public Common::ISideToneHardware
+    class PinSidetoneHardware : public Common::IPinOutput
     {
         private:
             int pin;
@@ -12,7 +12,7 @@ namespace Teensy31 {
           void txOff();
     };
 
-    class ToneSidetoneHardware : public Common::ISideToneHardware
+    class ToneSidetoneHardware : public Common::IPinOutput
     {
       private:
         int pin;

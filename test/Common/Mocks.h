@@ -33,7 +33,7 @@ class DecoderMock : public IMorseDecoder
     void onCharacterGap(void) { append(' '); }
 };
 
-class SideToneMock : public ISideToneHardware
+class SideToneMock : public IPinOutput
 {
   public:
     bool isTx = false;

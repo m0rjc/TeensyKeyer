@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <unity.h>
 
-extern void runSideToneRouterTests();
+extern void runOutputRouterTests();
 
 void setup()
 {
@@ -12,7 +12,7 @@ void setup()
 
 void loop()
 {
-    runSideToneRouterTests();
+    runOutputRouterTests();
     UNITY_END();
     delay(5000);
 }

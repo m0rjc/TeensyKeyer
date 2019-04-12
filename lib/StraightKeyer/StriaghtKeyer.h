@@ -12,12 +12,12 @@ namespace StraightKeyer
     {
     private:
         Common::IPinInput &m_hardware;
-        Common::ISideToneHardware &m_sideTone;
+        Common::IPinOutput &m_sideTone;
         Status m_status = unknown;
 
     public:
         Keyer(Common::IPinInput &hardware,
-            Common::ISideToneHardware &sideTone) : m_hardware(hardware), m_sideTone(sideTone) {}
+            Common::IPinOutput &sideTone) : m_hardware(hardware), m_sideTone(sideTone) {}
 
         void poll(Common::pollingLoopTime_t time);
     };
