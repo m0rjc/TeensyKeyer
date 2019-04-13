@@ -3,8 +3,8 @@
 
 // See https://www.eham.net/ehamforum/smf/index.php?topic=8534.0;wap2
 // But note that the keyer sees a character gap as 3 dits, so this gives
-// 3*3=9. A little more tolerant for me.
-const unsigned short GAPS_FOR_SPACE=3;
+// 3*3=9. Increasing further makes it a little more tolerant for me.
+const unsigned short GAPS_FOR_SPACE=6;
 
 namespace MorseDecode {
     void MorseDecoder::startCharacter(void)
