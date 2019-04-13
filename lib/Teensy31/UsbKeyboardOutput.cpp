@@ -63,7 +63,7 @@ const static char DIT_ENDING_CHARACTERS[16] = {
 
 UsbKeyboardOutput::UsbKeyboardOutput(void)
 {
-//    Keyboard.begin();
+    Keyboard.begin();
 }
 
 void UsbKeyboardOutput::onSymbol(unsigned short symbol)
@@ -86,11 +86,12 @@ void UsbKeyboardOutput::onSymbol(unsigned short symbol)
         case MORSE_8: ch = '8'; break;
         case MORSE_9: ch = '9'; break;
         case MORSE_BACKSPACE:
-            Serial.printf("<BS>");
+            Keyboard.press(KEY_BACKSPACE);
+            Keyboard.release(KEY_BACKSPACE);
             break;
         case MORSE_SPACE:
             ch = ' '; break;
     }
-    if(ch) Serial.write(ch);
+    if(ch) Keyboard.write(ch);
 }
 } // namespace Teensy31
