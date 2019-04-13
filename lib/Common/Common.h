@@ -21,10 +21,10 @@ enum KeyInput : byte
     squeeze = 3
 };
 
-class IKeyHardware
-{
-  public:
-    virtual KeyInput readSwitches(void) = 0;
+    class IKeyHardware
+    {
+        public:
+        virtual KeyInput readSwitches(void) = 0;
     };
 
     class IMorseDecoder {
@@ -109,6 +109,20 @@ class IKeyHardware
                 router.inputs &= ~bitMask;
                 router.onChange();
             }
+    };
+
+    class KeyerHardware : public IKeyHardware
+    {
+      private:
+        IPinInput &ditPin, &dahPin;
+
+      public:
+        KeyerHardware(IPinInput &ditPin, IPinInput &dahPin) : ditPin(ditPin), dahPin(dahPin) {}
+
+        KeyInput readSwitches(void)
+        {
+            return ditPin.isOn() ? (dahPin.isOn() ? KeyInput::squeeze : KeyInput::dit) : (dahPin.isOn() ? KeyInput::dah : KeyInput::none);
+        }
     };
 }
 

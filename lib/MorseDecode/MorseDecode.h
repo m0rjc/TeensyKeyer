@@ -19,7 +19,7 @@
  */
 namespace MorseDecode
 {
-class MorseDecoder
+class MorseDecoder : public Common::IMorseDecoder
 {
   private:
     Common::ISymbolCallback &m_callback;

@@ -3,81 +3,73 @@
 
 #include "IambicKeyer.h"
 #include "MorseDecode.h"
+#include "Teensy31Hardware.h"
+#include "StriaghtKeyer.h"
 
-void setup();
-void loop();
-void sendLetter(byte bitField);
-void sendDit();
-void sendDah();
-void sendEndCh();
-void sendMark();
-void sendSpace();
+class TeensyKeyer {
+    Teensy31::PinOutput ledPin;
+    Teensy31::PinOutput radioPin;
+    Teensy31::ToneOutput speakerPin;
 
-const int PIN_DIT = 3;
-const int PIN_DAH = 4;
+    Teensy31::SwitchInputPin ditInputPin;
+    Teensy31::SwitchInputPin dahInputPin;
+    Teensy31::SwitchInputPin straightInputPin;
 
-int ditLengthMillis = 200;
-int dahWeightTenths = 25;
-int letterSpacingTenths = 30;
+    Common::KeyerHardware paddle;
 
-void setup() {
-  Serial.begin(9600);
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(PIN_DIT, INPUT_PULLUP);
-  pinMode(PIN_DAH, INPUT_PULLUP);
+    Teensy31::UsbKeyboardOutput keyboard;
+    MorseDecode::MorseDecoder decoder;
+
+    Common::OutputRouter localOutputs;
+    Common::OutputRouterInput radioToLocalRouting;
+    Common::OutputRouter radioOutput;
+
+    Common::OutputRouterInput iambicKeyerOutputRouting;
+    IambicKeyer::Keyer iambicKeyer;
+
+    Common::OutputRouterInput straightKeyerOutputRouting;
+    StraightKeyer::Keyer straightKeyer;
+
+    public:
+        TeensyKeyer() :
+            // Pin assignments
+            ledPin(13),
+            radioPin(12),
+            speakerPin(11),
+            ditInputPin(3),
+            dahInputPin(4),
+            straightInputPin(5),
+            // Iambic paddle and decoder
+            paddle(ditInputPin, dahInputPin),
+            keyboard(),
+            decoder(keyboard),
+            // Output routing for local only outputs, and radio output which also triggers
+            // local only.
+            localOutputs(ledPin, speakerPin),
+            radioToLocalRouting(localOutputs),
+            radioOutput(radioPin, radioToLocalRouting),
+            iambicKeyerOutputRouting(radioOutput),
+            iambicKeyer(paddle, decoder, iambicKeyerOutputRouting),
+            straightKeyerOutputRouting(radioOutput),
+            straightKeyer(straightInputPin, straightKeyerOutputRouting)
+            {}
+
+        void poll(void) {
+            Common::pollingLoopTime_t time = millis();
+            ditInputPin.poll(time);
+            dahInputPin.poll(time);
+            straightInputPin.poll(time);
+            iambicKeyer.poll(time);
+            straightKeyer.poll(time);
+        }
+};
+
+TeensyKeyer *keyer;
+
+void setup (void) {
+    keyer = new TeensyKeyer();
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-  sendLetter(B00000011); // M
-  sendLetter(B00011111); // 0
-  sendLetter(B11111010); // R
-  sendLetter(B00001110); // J
-  sendLetter(B11110101); // C
-  sendEndCh();
-  sendEndCh();
-  sendEndCh();
-}
-
-void sendLetter(byte bitField) {
-  while(bitField != 0 && bitField != 0xFF) {
-    if(bitField & 1) {
-      sendDah();
-    } else {
-      sendDit();
-    }
-    bitField = bitField >> 1;
-    if(bitField & B01000000) bitField = bitField | B10000000;
-  }
-  sendEndCh();
-}
-
-void sendDit() {
-  Serial.print('.');
-  sendMark();
-  delay(ditLengthMillis);
-  sendSpace();
-  delay(ditLengthMillis);
-}
-
-void sendDah() {
-  Serial.print('-');
-  sendMark();
-  delay(ditLengthMillis * dahWeightTenths / 10);
-  sendSpace();
-  delay(ditLengthMillis);  
-}
-
-void sendEndCh() {
-  Serial.print('/');
-  sendSpace();
-  delay(ditLengthMillis * dahWeightTenths / 10);    
-}
-
-void sendMark() {
-  digitalWrite(LED_BUILTIN, HIGH);
-}
-
-void sendSpace() {
-  digitalWrite(LED_BUILTIN, LOW);
+void loop (void) {
+    keyer->poll();
 }

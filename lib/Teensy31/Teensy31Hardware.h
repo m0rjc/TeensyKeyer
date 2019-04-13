@@ -2,47 +2,62 @@
 #include "Common.h"
 
 namespace Teensy31 {
-    class PinSidetoneHardware : public Common::IPinOutput
+    class PinOutput : public Common::IPinOutput
     {
         private:
             int pin;
         public:
-          PinSidetoneHardware(int pin);
-          void txOn();
-          void txOff();
+          PinOutput(int pin) : pin(pin) { pinMode(pin, OUTPUT); }
+          void txOn() { digitalWrite(pin, HIGH); }
+          void txOff() { digitalWrite(pin, LOW); }
     };
 
-    class ToneSidetoneHardware : public Common::IPinOutput
+    class ToneOutput : public Common::IPinOutput
     {
       private:
-        int pin;
-        int freq = 600;
+        uint8_t pin;
+        uint16_t freq = 600;
         bool state = false;
+
       public:
-        ToneSidetoneHardware(int pin);
-        void txOn();
-        void txOff();
-        void setFrequency(int value);
+        ToneOutput(int pin) : pin(pin) { pinMode(pin, OUTPUT); }
+
+        void txOn()
+        {
+            tone(pin, freq);
+            state = true;
+        };
+
+        void txOff()
+        {
+            noTone(pin);
+            state = false;
+        }
+
+        void setFrequency(uint16_t value)
+        {
+            freq = value;
+            if (state)
+            {
+                txOff();
+                txOn();
+            }
+        };
     };
 
-    class DebouncedInputPin : public Common::IPinInput {
+    class SwitchInputPin : public Common::IPinInput {
         private:
-            int pin;
+            uint8_t pin;
         public:
-          DebouncedInputPin(int pin) : pin(pin) {}
-          void poll(void);
+          SwitchInputPin(uint8_t pin) : pin(pin) { pinMode(pin, INPUT_PULLUP); }
+          void poll(Common::pollingLoopTime_t time) {}; // Debounce logic would go here.
+          bool isOn(void) { return !digitalRead(pin); }
     };
 
-    class KeyerHardware : public Common::IKeyHardware
+    class UsbKeyboardOutput : public Common::ISymbolCallback
     {
-        private:
-            Common::IPinInput &ditPin, &dahPin, &straightPin;
-            pollingLoopTime_t pollTime;
-
         public:
-            void poll(void);
-            pollingLoopTime_t getTimeMillis(void);
-            Common::KeyInput readSwitches(void);
-            bool isStraightKeyDown(void);
+          UsbKeyboardOutput(void);
+          void onSymbol(unsigned short symbol);
     };
 }
