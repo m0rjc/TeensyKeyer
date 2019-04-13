@@ -68,8 +68,20 @@ TeensyKeyer *keyer;
 
 void setup (void) {
     keyer = new TeensyKeyer();
+    Serial.begin(9600);
 }
+
+int count = 0;
+pollingLoopTime_t lastPoll = 0;
 
 void loop (void) {
     keyer->poll();
+    if(++count == 1000000) {
+        pollingLoopTime_t time = millis();
+        pollingLoopTime_t nanoseconds = (time - lastPoll);
+        float microseconds = nanoseconds / 1000.0;
+        Serial.printf("Poll: microseconds=%0.2f  sizeof(keyer)=%d\n", microseconds, sizeof(*keyer));
+        lastPoll = time;
+        count = 0;
+    }
 }
