@@ -19,16 +19,21 @@ class TeensyKeyer {
 
     Teensy31::UsbKeyboardOutput keyboard;
     MorseDecode::MorseDecoder decoder;
+    Common::KeyerSelector keyerSelector;
 
     Common::OutputRouter localOutputs;
     Common::OutputRouterInput radioToLocalRouting;
     Common::OutputRouter radioOutput;
 
+    Common::KeyerSelectorInput iambicDecoderRouting;
     Common::OutputRouterInput iambicKeyerOutputRouting;
     IambicKeyer::Keyer iambicKeyer;
 
+    Common::KeyerSelectorInput straightDecoderRouting;
     Common::OutputRouterInput straightKeyerOutputRouting;
     StraightKeyer::Keyer straightKeyer;
+
+    Teensy31::DialInput rateInput;
 
     public:
         TeensyKeyer() :
@@ -39,19 +44,25 @@ class TeensyKeyer {
             ditInputPin(3),
             dahInputPin(4),
             straightInputPin(5),
-            // Iambic paddle and decoder
+            // Iambic paddle
             paddle(ditInputPin, dahInputPin),
             keyboard(),
             decoder(keyboard),
+            keyerSelector(decoder),
             // Output routing for local only outputs, and radio output which also triggers
             // local only.
             localOutputs(ledPin, speakerPin),
             radioToLocalRouting(localOutputs),
             radioOutput(radioPin, radioToLocalRouting),
+            // Iambic keyer feeds the decoder and radio
+            iambicDecoderRouting(keyerSelector, 1),
             iambicKeyerOutputRouting(radioOutput),
-            iambicKeyer(paddle, decoder, iambicKeyerOutputRouting),
+            iambicKeyer(paddle, iambicDecoderRouting, iambicKeyerOutputRouting),
+            // Straight keyer feeds the decoder and radio
+            straightDecoderRouting(keyerSelector, 2),
             straightKeyerOutputRouting(radioOutput),
-            straightKeyer(straightInputPin, straightKeyerOutputRouting)
+            straightKeyer(straightInputPin, straightDecoderRouting, straightKeyerOutputRouting),
+            rateInput(A0, Common::MIN_RATE_WPM, Common::MAX_RATE_WPM )
             {}
 
         void poll(void) {
@@ -61,6 +72,13 @@ class TeensyKeyer {
             straightInputPin.poll(time);
             iambicKeyer.poll(time);
             straightKeyer.poll(time);
+
+            if(rateInput.poll(time))
+            {
+                int rate = rateInput.getReading();
+                iambicKeyer.setRate(rate);
+                straightKeyer.setRate(rate);
+            }
         }
 
         void setRate(unsigned int wpm) {

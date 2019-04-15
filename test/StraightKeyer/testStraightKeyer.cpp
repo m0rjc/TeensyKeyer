@@ -8,10 +8,11 @@ Common::pollingLoopTime_t tick = 0;
 void onFirstPollItWillSetTxOnIfKeyDown() {
     PinInputMock hardware;
     SideToneMock sideTone;
+    DecoderMock decoder;
 
     hardware.state = true;
 
-    StraightKeyer::Keyer keyer(hardware, sideTone);
+    StraightKeyer::Keyer keyer(hardware, decoder, sideTone);
     keyer.poll(tick++);
 
     TEST_ASSERT_EQUAL(true, sideTone.isTx);
@@ -22,10 +23,11 @@ void onFirstPollItWillClearTxOnIfKeyUp()
 {
     PinInputMock hardware;
     SideToneMock sideTone;
+    DecoderMock decoder;
 
     hardware.state = false;
 
-    StraightKeyer::Keyer keyer(hardware, sideTone);
+    StraightKeyer::Keyer keyer(hardware, decoder, sideTone);
     keyer.poll(tick++);
 
     TEST_ASSERT_EQUAL(false, sideTone.isTx);
@@ -35,10 +37,11 @@ void onFirstPollItWillClearTxOnIfKeyUp()
 void onSubsequentPollsNoChangeItDoesNotCallSidetone() {
     PinInputMock hardware;
     SideToneMock sideTone;
+    DecoderMock decoder;
 
     hardware.state = true;
 
-    StraightKeyer::Keyer keyer(hardware, sideTone);
+    StraightKeyer::Keyer keyer(hardware, decoder, sideTone);
     keyer.poll(tick++);
     keyer.poll(tick++);
     keyer.poll(tick++);
@@ -49,10 +52,11 @@ void onSubsequentPollsNoChangeItDoesNotCallSidetone() {
 void whenInputChangesToHighItCallsSideToneOn() {
     PinInputMock hardware;
     SideToneMock sideTone;
+    DecoderMock decoder;
 
     hardware.state = false;
 
-    StraightKeyer::Keyer keyer(hardware, sideTone);
+    StraightKeyer::Keyer keyer(hardware, decoder, sideTone);
     keyer.poll(tick++);
 
     hardware.state = true;
@@ -66,10 +70,11 @@ void whenInputChangesToLowItCallsSideToneOff()
 {
     PinInputMock hardware;
     SideToneMock sideTone;
+    DecoderMock decoder;
 
     hardware.state = true;
 
-    StraightKeyer::Keyer keyer(hardware, sideTone);
+    StraightKeyer::Keyer keyer(hardware, decoder, sideTone);
     keyer.poll(tick++);
 
     hardware.state = false;
