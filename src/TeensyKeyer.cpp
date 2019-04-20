@@ -5,8 +5,11 @@
 #include "MorseDecode.h"
 #include "Teensy31Hardware.h"
 #include "StriaghtKeyer.h"
+#include "Ux.h"
 
-class TeensyKeyer {
+#include "MorseCharacters.h"
+
+class TeensyKeyer : public Common::IAlert {
     Teensy31::PinOutput ledPin;
     Teensy31::PinOutput radioPin;
     Teensy31::ToneOutput speakerPin;
@@ -35,35 +38,46 @@ class TeensyKeyer {
 
     Teensy31::DialInput rateInput;
 
-    public:
-        TeensyKeyer() :
-            // Pin assignments
-            ledPin(13),
-            radioPin(12),
-            speakerPin(11),
-            ditInputPin(3),
-            dahInputPin(4),
-            straightInputPin(5),
-            // Iambic paddle
-            paddle(ditInputPin, dahInputPin),
-            keyboard(),
-            decoder(keyboard),
-            keyerSelector(decoder),
-            // Output routing for local only outputs, and radio output which also triggers
-            // local only.
-            localOutputs(ledPin, speakerPin),
-            radioToLocalRouting(localOutputs),
-            radioOutput(radioPin, radioToLocalRouting),
-            // Iambic keyer feeds the decoder and radio
-            iambicDecoderRouting(keyerSelector, 1),
-            iambicKeyerOutputRouting(radioOutput),
-            iambicKeyer(paddle, iambicDecoderRouting, iambicKeyerOutputRouting),
-            // Straight keyer feeds the decoder and radio
-            straightDecoderRouting(keyerSelector, 2),
-            straightKeyerOutputRouting(radioOutput),
-            straightKeyer(straightInputPin, straightDecoderRouting, straightKeyerOutputRouting),
-            rateInput(A0, Common::MIN_RATE_WPM, Common::MAX_RATE_WPM )
-            {}
+    Common::OutputRouterInput uxOutputRouting;
+    Ux::MorseOutput morseOutput;
+
+    bool analogInputsRead = false;
+
+    void onInit(void) {
+        morseOutput.playAscii("M0RJC/P Teensy Keyer");
+    }
+
+public:
+    TeensyKeyer() : // Pin assignments
+                    ledPin(13),
+                    radioPin(12),
+                    speakerPin(11),
+                    ditInputPin(3),
+                    dahInputPin(4),
+                    straightInputPin(5),
+                    // Iambic paddle
+                    paddle(ditInputPin, dahInputPin),
+                    keyboard(*this),
+                    decoder(keyboard),
+                    keyerSelector(decoder),
+                    // Output routing for local only outputs, and radio output which also triggers
+                    // local only.
+                    localOutputs(ledPin, speakerPin),
+                    radioToLocalRouting(localOutputs),
+                    radioOutput(radioPin, radioToLocalRouting),
+                    // Iambic keyer feeds the decoder and radio
+                    iambicDecoderRouting(keyerSelector, 1),
+                    iambicKeyerOutputRouting(radioOutput),
+                    iambicKeyer(paddle, iambicDecoderRouting, iambicKeyerOutputRouting),
+                    // Straight keyer feeds the decoder and radio.
+                    straightDecoderRouting(keyerSelector, 2),
+                    straightKeyerOutputRouting(radioOutput),
+                    straightKeyer(straightInputPin, straightDecoderRouting, straightKeyerOutputRouting),
+                    rateInput(A0, Common::MIN_RATE_WPM, Common::MAX_RATE_WPM),
+                    // Locally generated messages do not key the radio.
+                    uxOutputRouting(localOutputs),
+                    morseOutput(uxOutputRouting)
+    {}
 
         void poll(void) {
             Common::pollingLoopTime_t time = millis();
@@ -72,17 +86,25 @@ class TeensyKeyer {
             straightInputPin.poll(time);
             iambicKeyer.poll(time);
             straightKeyer.poll(time);
+            morseOutput.poll(time);
 
             if(rateInput.poll(time))
             {
                 int rate = rateInput.getReading();
-                iambicKeyer.setRate(rate);
-                straightKeyer.setRate(rate);
+                setRate(rate);
+                if(!analogInputsRead) onInit();
+                analogInputsRead = true;
             }
         }
 
-        void setRate(unsigned int wpm) {
-            iambicKeyer.setRate(wpm);
+        void setRate(unsigned int rate) {
+            iambicKeyer.setRate(rate);
+            straightKeyer.setRate(rate);
+            morseOutput.setRate(rate);
+        }
+
+        void onAlertMessage(const char *text) {
+            morseOutput.playAscii(text);
         }
 };
 
@@ -90,11 +112,9 @@ TeensyKeyer *keyer;
 
 void setup (void) {
     keyer = new TeensyKeyer();
-    keyer->setRate(10);
-    Serial.begin(9600);
+    keyer->setRate(15);
+//    Serial.begin(9600);
 }
-
-pollingLoopTime_t lastPoll = 0;
 
 void loop (void) {
     keyer->poll();

@@ -61,8 +61,11 @@ namespace Teensy31 {
 
     class UsbKeyboardOutput : public Common::ISymbolCallback
     {
+        private:
+          uint8_t failures = 0;
+          Common::IAlert &ui;
         public:
-          UsbKeyboardOutput(void);
+          UsbKeyboardOutput(Common::IAlert &ui);
           void onSymbol(unsigned short symbol);
     };
 

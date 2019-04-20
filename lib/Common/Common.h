@@ -59,6 +59,12 @@ public:
     virtual bool isOn(void) = 0;
 };
 
+class IAlert
+{
+    public:
+    virtual void onAlertMessage(const char *text) = 0;
+};
+
 class OutputRouterInput;
 
 /**
@@ -170,6 +176,9 @@ inline pollingLoopTime_t getDitLength(unsigned int wpm)
         wpm = MAX_RATE_WPM;
     return 1200 / wpm;
 }
+
+extern uint8_t asciiToMorse(char ch);
+
 } // namespace Common
 
 #endif

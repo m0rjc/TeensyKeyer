@@ -6,6 +6,8 @@
 namespace Teensy31
 {
 
+const uint8_t MAX_FAILURES = 2;
+
 class IKeyboardAction {
     public:
     virtual void act(void) = 0;
@@ -61,16 +63,23 @@ const static char DIT_ENDING_CHARACTERS[16] = {
     /* 11111  xxxx */ 0 
 };
 
-UsbKeyboardOutput::UsbKeyboardOutput(void)
+UsbKeyboardOutput::UsbKeyboardOutput(Common::IAlert &ui) : ui(ui)
 {
     Keyboard.begin();
 }
 
 void UsbKeyboardOutput::onSymbol(unsigned short symbol)
 {
+    if(failures >= MAX_FAILURES) return;
+
     char ch = 0;
+    size_t result = 0;
+    bool attemptMade = false;
+    
     unsigned short topBits = symbol & 0xFFF0;
-    if (topBits == 0) {
+    if (symbol == MORSE_SPACE) {
+        ch = ' ';
+    } else if (topBits == 0) {
         ch = DAH_ENDING_CHARACTERS[symbol];
     } else if(topBits == 0xF0) {
         ch = DIT_ENDING_CHARACTERS[symbol & 0x0F];
@@ -85,13 +94,28 @@ void UsbKeyboardOutput::onSymbol(unsigned short symbol)
         case MORSE_7: ch = '7'; break;
         case MORSE_8: ch = '8'; break;
         case MORSE_9: ch = '9'; break;
+        case MORSE_SLASH: ch = '/'; break;
         case MORSE_BACKSPACE:
             Keyboard.press(KEY_BACKSPACE);
             Keyboard.release(KEY_BACKSPACE);
+            attemptMade = false;  // My copy of Keyboard doesn't return a result for press.
             break;
-        case MORSE_SPACE:
-            ch = ' '; break;
     }
-    if(ch) Keyboard.write(ch);
+
+    if(ch) {
+        result = Keyboard.write(ch);
+        attemptMade = true;
+    }
+
+    if(attemptMade) {
+        if(result == 0) {
+            failures++;
+            if(failures == MAX_FAILURES) {
+                ui.onAlertMessage("No USB KBD");
+            }            
+        } else {
+            failures = 0;
+        }
+    }
 }
 } // namespace Teensy31

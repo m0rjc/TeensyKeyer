@@ -2,6 +2,7 @@
 #include <unity.h>
 
 extern void runOutputRouterTests();
+extern void runAsciiToMorseTests();
 
 void setup()
 {
@@ -13,6 +14,7 @@ void setup()
 void loop()
 {
     runOutputRouterTests();
+    runAsciiToMorseTests();
     UNITY_END();
     delay(5000);
 }
