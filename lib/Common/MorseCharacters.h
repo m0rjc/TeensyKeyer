@@ -67,6 +67,8 @@
 #define MORSE_EQUALS B00010001
 #define MORSE_AT_SIGN B11010110
 
+#define MORSE_PROSIGN_AA B00001010
+
 // This is within 8 bits so can be included in messages.
 #define MORSE_SPACE 0xFF
 

@@ -44,7 +44,7 @@ class TeensyKeyer : public Common::IAlert {
     bool analogInputsRead = false;
 
     void onInit(void) {
-        morseOutput.playAscii("M0RJC/P Teensy Keyer");
+        morseOutput.playAscii("M0RJC");
     }
 
 public:

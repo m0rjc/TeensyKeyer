@@ -34,7 +34,7 @@ namespace MorseDecode {
         onNoLongerIdle();
         m_lastIsDah = false;
         m_counter++;
-        if(m_counter > 7)
+        if(m_counter > 7 || (m_isBackspacing && m_counter > 3))
         {
             onLongSymbol();
         }

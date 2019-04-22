@@ -6,23 +6,6 @@
 namespace Teensy31
 {
 
-const uint8_t MAX_FAILURES = 2;
-
-class IKeyboardAction {
-    public:
-    virtual void act(void) = 0;
-};
-
-class CharacterKeyboardAction : public IKeyboardAction {
-    private:
-    char ch;
-    public:
-    CharacterKeyboardAction(char ch) : ch(ch) {}
-    void act(void) {
-        Serial.write(ch);
-    }
-};
-
 /* Table of dah ending 4 bit characters. Based at 1 */
 static char DAH_ENDING_CHARACTERS[16] = {
     /* 0 */  0,
@@ -35,7 +18,7 @@ static char DAH_ENDING_CHARACTERS[16] = {
     /* --- */ 'o',
     /* ...- */ 'v',
     /* -..- */ 'x',
-    /* .-.- */ 0,
+    /* .-.- */ '\n',
     /* --.- */ 'q',
     /* ..-- */ 0,
     /* -.-- */ 'y',
@@ -70,11 +53,7 @@ UsbKeyboardOutput::UsbKeyboardOutput(Common::IAlert &ui) : ui(ui)
 
 void UsbKeyboardOutput::onSymbol(unsigned short symbol)
 {
-    if(failures >= MAX_FAILURES) return;
-
     char ch = 0;
-    size_t result = 0;
-    bool attemptMade = false;
     
     unsigned short topBits = symbol & 0xFFF0;
     if (symbol == MORSE_SPACE) {
@@ -95,27 +74,15 @@ void UsbKeyboardOutput::onSymbol(unsigned short symbol)
         case MORSE_8: ch = '8'; break;
         case MORSE_9: ch = '9'; break;
         case MORSE_SLASH: ch = '/'; break;
+        case MORSE_PERIOD: ch = '.'; break;
         case MORSE_BACKSPACE:
             Keyboard.press(KEY_BACKSPACE);
             Keyboard.release(KEY_BACKSPACE);
-            attemptMade = false;  // My copy of Keyboard doesn't return a result for press.
             break;
     }
 
     if(ch) {
-        result = Keyboard.write(ch);
-        attemptMade = true;
-    }
-
-    if(attemptMade) {
-        if(result == 0) {
-            failures++;
-            if(failures == MAX_FAILURES) {
-                ui.onAlertMessage("No USB KBD");
-            }            
-        } else {
-            failures = 0;
-        }
+        Keyboard.write(ch);
     }
 }
 } // namespace Teensy31
